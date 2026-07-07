@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AR Safari - Real-World Size Animals</title>
+  
+  <!-- Premium Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Include Google's <model-viewer> CDN -->
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+
+  <style>
+    /* Premium Styling Tokens & General Reset */
+    :root {
+      --bg-gradient: radial-gradient(circle at top, #f8fafc 0%, #e2e8f0 100%);
+      --bg-color: #e2e8f0;
+      --card-bg: rgba(255, 255, 255, 0.65);
+      --card-bg-active: rgba(255, 255, 255, 0.9);
+      --border-color: rgba(0, 0, 0, 0.08);
+      --border-glow: rgba(99, 102, 241, 0.2);
+      --accent-color: #4f46e5; /* Accessible indigo */
+      --accent-hover: #3730a3;
+      --text-color: #0f172a;
+      --text-muted: #475569;
+      --font-family: 'Outfit', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-family);
+      background: var(--bg-color);
+      background-image: var(--bg-gradient);
+      color: var(--text-color);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-x: hidden;
+    }
+
+    /* Layout Container */
+    .app-container {
+      width: 100%;
+      max-width: 800px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      flex-grow: 1;
+    }
+
+    /* Language Switcher Styling */
+    .lang-switcher {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      width: 100%;
+      margin-bottom: -10px;
+    }
+
+    .lang-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      color: var(--text-color);
+      padding: 6px 14px;
+      border-radius: 100px;
+      font-family: var(--font-family);
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .lang-btn:hover {
+      background: rgba(255, 255, 255, 0.85);
+      border-color: rgba(0, 0, 0, 0.15);
+    }
+
+    .lang-btn.active {
+      background: var(--accent-color);
+      color: white;
+      border-color: var(--accent-color);
+      box-shadow: 0 4px 10px rgba(99, 102, 241, 0.25);
+    }
+
+    /* Header styling */
+    header {
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    header h1 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, #1f2937 40%, #4f46e5 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 6px;
+    }
+
+    header p {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      font-weight: 300;
+    }
+
+    /* Responsive Grid for Animal Selection */
+    .selection-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      width: 100%;
+    }
+
+    @media (min-width: 600px) {
+      .selection-grid {
+        grid-template-columns: repeat(6, 1fr);
+      }
+    }
+
+    .animal-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      color: var(--text-color);
+      padding: 12px 8px;
+      border-radius: 16px;
+      font-family: var(--font-family);
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .animal-btn:hover {
+      background: rgba(255, 255, 255, 0.8);
+      transform: translateY(-2px);
+      border-color: rgba(0, 0, 0, 0.15);
+    }
+
+    .animal-btn.active {
+      background: var(--card-bg-active);
+      border-color: var(--accent-color);
+      box-shadow: 0 0 15px var(--border-glow);
+      transform: translateY(-2px);
+    }
+
+    .animal-icon {
+      font-size: 1.6rem;
+    }
+
+    /* Model Viewer Window Container */
+    .viewer-container {
+      position: relative;
+      width: 100%;
+      height: 55vh;
+      min-height: 380px;
+      background: rgba(255, 255, 255, 0.4);
+      border: 1px solid var(--border-color);
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+      backdrop-filter: blur(10px);
+    }
+
+    /* The model-viewer component */
+    model-viewer {
+      width: 100%;
+      height: 100%;
+      background-color: transparent;
+      --ar-button-display: none; /* Hide default AR button to use custom styling */
+    }
+
+    /* Bottom Overlay instructions */
+    .overlay-instructions {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90%;
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid var(--border-color);
+      padding: 12px 16px;
+      border-radius: 16px;
+      font-size: 0.85rem;
+      text-align: center;
+      line-height: 1.4;
+      pointer-events: none;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+      z-index: 10;
+    }
+
+    .overlay-instructions span {
+      font-weight: 600;
+      color: var(--accent-color);
+    }
+
+    /* Custom Floating UI Actions */
+    .viewer-actions {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      width: 90%;
+      z-index: 10;
+    }
+
+    /* Glassmorphism custom buttons */
+    .action-btn {
+      width: 100%;
+      max-width: 280px;
+      background: rgba(99, 102, 241, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: white;
+      padding: 14px 20px;
+      border-radius: 50px;
+      font-family: var(--font-family);
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 8px 16px rgba(99, 102, 241, 0.3);
+      transition: all 0.3s ease;
+    }
+
+    .action-btn:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 10px 20px rgba(99, 102, 241, 0.4);
+    }
+
+    .action-btn:active {
+      transform: translateY(1px);
+    }
+
+    /* Secondary audio description button styling */
+    .audio-btn {
+      background: rgba(255, 255, 255, 0.8);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      color: var(--text-color);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+    }
+
+    .audio-btn:hover {
+      background: rgba(255, 255, 255, 0.95);
+      border-color: var(--accent-color);
+      box-shadow: 0 8px 16px rgba(99, 102, 241, 0.15);
+    }
+
+    .audio-btn.playing {
+      background: rgba(239, 68, 68, 0.9); /* Red state for pause */
+      box-shadow: 0 8px 16px rgba(239, 68, 68, 0.2);
+      border-color: rgba(255, 255, 255, 0.25);
+      color: white;
+    }
+
+    .audio-btn.playing:hover {
+      background: rgba(220, 38, 38, 1);
+      color: white;
+    }
+
+    /* Loading placeholder spinner inside viewer */
+    .loading-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--bg-color);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 15px;
+      z-index: 5;
+      transition: opacity 0.5s ease;
+      pointer-events: none;
+    }
+
+    .spinner {
+      width: 45px;
+      height: 45px;
+      border: 3px solid rgba(0, 0, 0, 0.08);
+      border-radius: 50%;
+      border-top-color: var(--accent-color);
+      animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Info card layout */
+    .info-panel {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 20px;
+      backdrop-filter: blur(12px);
+    }
+
+    .info-panel h2 {
+      font-size: 1.3rem;
+      margin-bottom: 8px;
+      color: var(--text-color);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .info-panel p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* Hidden Native Audio Element */
+    #audio-element {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <!-- Language Switcher -->
+    <div class="lang-switcher">
+      <button class="lang-btn active" data-lang="en" aria-label="Select English">EN</button>
+      <button class="lang-btn" data-lang="si" aria-label="සිංහල තෝරන්න">සිංහල</button>
+      <button class="lang-btn" data-lang="ta" aria-label="தமிழ் தேர்ந்தெடுக்கவும்">தமிழ்</button>
+    </div>
+    
+    <!-- Top Header -->
+    <header>
+      <h1 id="app-title">AR Safari Experience</h1>
+      <p id="app-subtitle">Observe wildlife at real-world scale directly in your space</p>
+    </header>
+
+    <!-- 6 Animal Selection Menu -->
+    <nav class="selection-grid" aria-label="Animal Selection">
+      <button class="animal-btn active" data-animal="macaw" aria-pressed="true">
+        <span class="animal-icon">🦜</span>
+        <span class="animal-name-label">Macaw</span>
+      </button>
+      <button class="animal-btn" data-animal="tiger" aria-pressed="false">
+        <span class="animal-icon">🐅</span>
+        <span class="animal-name-label">Tiger</span>
+      </button>
+      <button class="animal-btn" data-animal="kangaroo" aria-pressed="false">
+        <span class="animal-icon">🦘</span>
+        <span class="animal-name-label">Kangaroo</span>
+      </button>
+      <button class="animal-btn" data-animal="orangutan" aria-pressed="false">
+        <span class="animal-icon">🦧</span>
+        <span class="animal-name-label">Orangutan</span>
+      </button>
+      <button class="animal-btn" data-animal="penguin" aria-pressed="false">
+        <span class="animal-icon">🐧</span>
+        <span class="animal-name-label">Penguin</span>
+      </button>
+      <button class="animal-btn" data-animal="panda" aria-pressed="false">
+        <span class="animal-icon">🐼</span>
+        <span class="animal-name-label">Panda</span>
+      </button>
+    </nav>
+
+    <!-- Large 3D View Window -->
+    <main class="viewer-container">
+      
+      <!-- Loading Indicator -->
+      <div class="loading-overlay" id="loading-overlay">
+        <div class="spinner"></div>
+        <p id="loading-text" style="font-size: 0.9rem; color: var(--text-muted);">Preparing environment...</p>
+      </div>
+
+      <!-- Google <model-viewer> component -->
+      <model-viewer
+        id="animal-viewer"
+        src="models/macaw.glb"
+        ios-src="models/macaw.usdz"
+        alt="A 3D model of a Macaw at true scale"
+        ar
+        ar-scale="fixed"
+        ar-modes="webxr scene-viewer quick-look"
+        camera-controls
+        touch-action="pan-y"
+        shadow-intensity="1"
+        shadow-softness="0.5"
+        exposure="1"
+        autoplay>
+      </model-viewer>
+
+      <!-- Floating Controls on Top of 3D Window -->
+      <div class="viewer-actions">
+        <!-- Native AR Trigger (activates the <model-viewer> AR mode) -->
+        <button class="action-btn" id="ar-trigger-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+          <span id="ar-btn-text">View in your space</span>
+        </button>
+
+        <!-- Custom Audio Description Control -->
+        <button class="action-btn audio-btn" id="audio-control-btn">
+          <span id="audio-btn-text">🔊 Play Audio Description</span>
+        </button>
+      </div>
+
+      <!-- Floating Bottom Instructions -->
+      <div class="overlay-instructions">
+        Select an animal, tap <span>'View in your space'</span>, and scan the floor.
+      </div>
+    </main>
+
+    <!-- Info/Details Panel -->
+    <section class="info-panel" aria-labelledby="panel-title">
+      <h2 id="panel-title">
+        <span id="info-animal-icon">🦜</span> 
+        <span id="info-animal-name">Macaw</span> - 
+        <span id="info-desc-heading">Description</span>
+      </h2>
+      <p id="info-animal-desc">
+        Macaws are long-tailed, often colorful New World parrots. Seeing a macaw at 1:1 scale in AR highlights their majestic wingspan and vibrant coloration.
+      </p>
+    </section>
+
+  </div>
+
+  <!-- HTML5 Audio Element (Loads language-specific track) -->
+  <audio id="audio-element" src="audio/macaw_en.mp3" preload="auto"></audio>
+
+  <!-- Script logic -->
+  <script>
+    // Global translation text maps
+    const translations = {
+      en: {
+        title: 'AR Safari Experience',
+        subtitle: 'Observe wildlife at real-world scale directly in your space',
+        playAudio: '🔊 Play Audio Description',
+        pauseAudio: '⏸️ Pause Audio',
+        viewInSpace: 'View in your space',
+        instructions: 'Select an animal, tap <span>\'View in your space\'</span>, and scan the floor.',
+        preparing: 'Preparing environment...',
+        descriptionHeading: 'Description'
+      },
+      si: {
+        title: 'AR සෆාරි අත්දැකීම',
+        subtitle: 'වන සතුන් ඔවුන්ගේ සැබෑ ප්‍රමාණයෙන් ඔබේ අවකාශය තුළම නරඹන්න',
+        playAudio: '🔊 ශ්‍රව්‍ය විස්තරය ධාවනය කරන්න',
+        pauseAudio: '⏸️ ශ්‍රව්‍යය නවත්වන්න',
+        viewInSpace: 'ඔබේ අවකාශයේ බලන්න',
+        instructions: 'සතෙකු තෝරාගෙන, <span>\'ඔබේ අවකාශයේ බලන්න\'</span> ඔබා, බිම ස්කෑන් කරන්න.',
+        preparing: 'පරිසරය සූදානම් කරමින් පවතී...',
+        descriptionHeading: 'විස්තරය'
+      },
+      ta: {
+        title: 'AR சவாரி அனுபவம்',
+        subtitle: 'வனவிலங்குகளை அவற்றின் உண்மையான அளவில் உங்கள் இடத்திலேயே கண்டு மகிழுங்கள்',
+        playAudio: '🔊 ஒலி விளக்கத்தை இயக்குக',
+        pauseAudio: '⏸️ ஒலியை இடைநிறுத்துக',
+        viewInSpace: 'உங்கள் இடத்தில் காண்க',
+        instructions: 'ஒரு விலங்கைத் தேர்ந்தெடுத்து, <span>\'உங்கள் இடத்தில் காண்க\'</span> என்பதைத் தட்டி, தரையை ஸ்கேன் செய்யவும்.',
+        preparing: 'சூழலைத் தயார் செய்கிறது...',
+        descriptionHeading: 'விளக்கம்'
+      }
+    };
+
+    // Animal definitions containing trilingual titles and text descriptions
+    const animals = {
+      macaw: {
+        name: {
+          en: 'Macaw',
+          si: 'මැකෝ ගිරවා',
+          ta: 'மக்காவ் கிளி'
+        },
+        icon: '🦜',
+        glb: 'models/macaw.glb',
+        usdz: 'models/macaw.usdz',
+        audio: {
+          en: 'audio/macaw_en.mp3',
+          si: 'audio/macaw_si.mp3',
+          ta: 'audio/macaw_ta.mp3'
+        },
+        description: {
+          en: 'Macaws are long-tailed, often colorful New World parrots. Seeing a macaw at 1:1 scale in AR highlights their majestic wingspan and vibrant coloration.',
+          si: 'මැකෝ යනු දිගු වලිගයක් සහිත, වර්ණවත් නව ලෝක ගිරවුන් විශේෂයකි. AR මඟින් මැකෝ ගිරවෙකු 1:1 පරිමාණයෙන් දැකීමෙන් උන්ගේ අලංකාර පියාපත් සහ විචිත්‍රවත් වර්ණ ඉස්මතු වේ.',
+          ta: 'மக்காவ் கிளிகள் நீண்ட வாலுடைய, பெரும்பாலும் வண்ணமயமான கிளிகளாகும். AR இல் 1:1 அளவில் ஒரு மக்காவ் கிளியைப் பார்ப்பது அதன் கம்பீரமான இறக்கைகளையும் துடிப்பான வண்ணங்களையும் காட்டுகிறது.'
+        }
+      },
+      tiger: {
+        name: {
+          en: 'Tiger',
+          si: 'කොටියා',
+          ta: 'புலி'
+        },
+        icon: '🐅',
+        glb: 'models/tiger.glb',
+        usdz: 'models/tiger.usdz',
+        audio: {
+          en: 'audio/tiger_en.mp3',
+          si: 'audio/tiger_si.mp3',
+          ta: 'audio/tiger_ta.mp3'
+        },
+        description: {
+          en: 'The tiger is the largest living cat species and a member of the genus Panthera. View its magnificent striped coat and powerful physical build at actual size.',
+          si: 'කොටියා යනු දැනට ජීවත්වන විශාලතම බළල් විශේෂය වන අතර පැන්තරා කුලයට අයත් වේ. උන්ගේ අලංකාර ඉරි සහිත සම සහ ශක්තිමත් ශරීරය සැබෑ ප්‍රමාණයෙන් නරඹන්න.',
+          ta: 'புலி என்பது வாழும் பூனை இனங்களிலேயே மிகப்பெரியது மற்றும் பான்தெரா பேரினத்தைச் சேர்ந்தது. அதன் கம்பீரமான வரிகள் கொண்ட கோட்டையும் சக்திவாய்ந்த உடலமைப்பையும் உண்மையான அளவில் காண்க.'
+        }
+      },
+      kangaroo: {
+        name: {
+          en: 'Kangaroo',
+          si: 'කැන්ගරු',
+          ta: 'கங்காரு'
+        },
+        icon: '🦘',
+        glb: 'models/kangaroo.glb',
+        usdz: 'models/kangaroo.usdz',
+        audio: {
+          en: 'audio/kangaroo_en.mp3',
+          si: 'audio/kangaroo_si.mp3',
+          ta: 'audio/kangaroo_ta.mp3'
+        },
+        description: {
+          en: 'Kangaroos are large marsupials native to Australia, famous for their hopping gait and pouches. Place a kangaroo in your space to examine its powerful hind legs.',
+          si: 'කැන්ගරු යනු ඕස්ට්‍රේලියාවට ආවේණික වූ, පැන පැන යාම සහ පැටවුන් දමන පසුම්බිය නිසා ප්‍රසිද්ධ විශාල සත්ත්ව විශේෂයකි. උන්ගේ ශක්තිමත් පසුපස පාද නිරීක්ෂණය කිරීමට කැන්ගරුවෙකු ඔබේ අවකාශයේ තබන්න.',
+          ta: 'கங்காருக்கள் ஆஸ்திரேலியாவை தாயகமாகக் கொண்ட பெரிய பையுடைய பாலூட்டிகளாகும், இவை குதித்து ஓடுவதற்கும் பைகளுக்கும் பெயர் பெற்றவை. அதன் சக்திவாய்ந்த பின்னங்கால்களை ஆராய ஒரு கங்காரூவை உங்கள் இடத்தில் வைக்கவும்.'
+        }
+      },
+      orangutan: {
+        name: {
+          en: 'Orangutan',
+          si: 'ඔරංඔටන්',
+          ta: 'ஒராங்குட்டான்'
+        },
+        icon: '🦧',
+        glb: 'models/orangutan.glb',
+        usdz: 'models/orangutan.usdz',
+        audio: {
+          en: 'audio/orangutan_en.mp3',
+          si: 'audio/orangutan_si.mp3',
+          ta: 'audio/orangutan_ta.mp3'
+        },
+        description: {
+          en: 'Orangutans are great apes native to the rainforests of Indonesia and Malaysia. Observe their distinctive red fur and long, powerful arms used for swinging through trees.',
+          si: 'ඔරංඔටන් යනු ඉන්දුනීසියාවේ සහ මැලේසියාවේ වැසි වනාන්තරවලට ආවේණික වූ මහා වානරයන් විශේෂයකි. ගස් අතර සැරිසැරීමට උදව් වන උන්ගේ සුවිශේෂී රතු පැහැති ලොම් සහ දිගු, ශක්තිමත් දෑත් නිරීක්ෂණය කරන්න.',
+          ta: 'ஒராங்குட்டான்கள் இந்தோனேசியா மற்றும் மலேசியாவின் மழைக்காடுகளை பூர்வீகமாகக் கொண்ட பெரிய மனிதக்குரங்குகள் ஆகும். அவற்றின் தனித்துவமான சிவப்பு நிற உரோமங்களையும், மரங்களில் ஊசலாடப் பயன்படும் நீண்ட, சக்திவாய்ந்த கைகளையும் கவனியுங்கள்.'
+        }
+      },
+      penguin: {
+        name: {
+          en: 'Penguin',
+          si: 'පෙන්ගුයින්',
+          ta: 'பென்குயின்'
+        },
+        icon: '🐧',
+        glb: 'models/penguin.glb',
+        usdz: 'models/penguin.usdz',
+        audio: {
+          en: 'audio/penguin_en.mp3',
+          si: 'audio/penguin_si.mp3',
+          ta: 'audio/penguin_ta.mp3'
+        },
+        description: {
+          en: 'Penguins are aquatic, flightless birds living almost exclusively in the Southern Hemisphere. View their distinctive waddling stance and tuxedo-like feathers in real scale.',
+          si: 'පෙන්ගුයින් යනු දක්ෂිණ අර්ධගෝලයේ පමණක් ජීවත් වන ජලජ, පියාසර කළ නොහැකි කුරුල්ලන් විශේෂයකි. උන්ගේ සුවිශේෂී ඇවිදීමේ විලාසය සහ ටක්සිඩෝ ඇඳුමක් වැනි පිහාටු සැබෑ පරිමාණයෙන් නරඹන්න.',
+          ta: 'பென்குயின்கள் தெற்கு அரைக்கோளத்தில் மட்டுமே வாழும் நீர்வாழ், பறக்க முடியாத பறவைகளாகும். அவற்றின் தனித்துவமான தள்ளாடும் நடையையும், டக்ஷிடோ போன்ற இறகுகளையும் உண்மையான அளவில் காண்க.'
+        }
+      },
+      panda: {
+        name: {
+          en: 'Panda',
+          si: 'පැන්ඩා',
+          ta: 'பாண்டா கரடி'
+        },
+        icon: '🐼',
+        glb: 'models/panda.glb',
+        usdz: 'models/panda.usdz',
+        audio: {
+          en: 'audio/panda_en.mp3',
+          si: 'audio/panda_si.mp3',
+          ta: 'audio/panda_ta.mp3'
+        },
+        description: {
+          en: 'The giant panda is a bear native to south central China, famous for its bold black-and-white coat. Meet this bamboo-loving animal up close in 1:1 size.',
+          si: 'යෝධ පැන්ඩා යනු දකුණු මැද චීනයට ආවේණික වූ, කැපී පෙනෙන කළු සහ සුදු පැහැති ලොම් සහිත වලස් විශේෂයකි. උණ බම්බු ආහාරයට ගැනීමට කැමති මෙම සත්වයා 1:1 ප්‍රමාණයෙන් සමීපව අත්විඳින්න.',
+          ta: 'இராட்சத பாண்டா என்பது தெற்கு மத்திய சீனாவை பூர்வீகமாகக் கொண்ட ஒரு கரடி ஆகும், இது அதன் கறுப்பு-வெள்ளை உடலுக்கு பிரபலமானது. மூங்கில் விரும்பும் இந்த விலங்கை 1:1 அளவில் நெருக்கமாகக் கண்டு மகிழுங்கள்.'
+        }
+      }
+    };
+
+    // State Variables
+    let currentLang = 'en';
+    let currentAnimalId = 'macaw';
+
+    // DOM Elements
+    const viewer = document.getElementById('animal-viewer');
+    const loadingOverlay = document.getElementById('loading-overlay');
+    const arTriggerBtn = document.getElementById('ar-trigger-btn');
+    const audioBtn = document.getElementById('audio-control-btn');
+    const audioEl = document.getElementById('audio-element');
+    const animalButtons = document.querySelectorAll('.animal-btn');
+    
+    // Translation Target DOM Elements
+    const appTitle = document.getElementById('app-title');
+    const appSubtitle = document.getElementById('app-subtitle');
+    const arBtnText = document.getElementById('ar-btn-text');
+    const audioBtnText = document.getElementById('audio-btn-text');
+    const overlayInstructions = document.querySelector('.overlay-instructions');
+    const loadingText = document.getElementById('loading-text');
+    const infoDescHeading = document.getElementById('info-desc-heading');
+    const infoAnimalName = document.getElementById('info-animal-name');
+    const infoAnimalIcon = document.getElementById('info-animal-icon');
+    const infoDesc = document.getElementById('info-animal-desc');
+    const langButtons = document.querySelectorAll('.lang-btn');
+
+    // 1. Language Switcher Click Event Handlers
+    langButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const selectedLang = btn.getAttribute('data-lang');
+        if (selectedLang === currentLang) return;
+
+        // Toggle active visual classes
+        langButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        // Update state and refresh interface translation
+        currentLang = selectedLang;
+        updateLanguageUI();
+      });
+    });
+
+    function updateLanguageUI() {
+      const trans = translations[currentLang];
+      
+      // Update global text blocks
+      appTitle.textContent = trans.title;
+      appSubtitle.textContent = trans.subtitle;
+      arBtnText.textContent = trans.viewInSpace;
+      
+      // Update instruction text
+      overlayInstructions.innerHTML = trans.instructions;
+      loadingText.textContent = trans.preparing;
+      infoDescHeading.textContent = trans.descriptionHeading;
+
+      // Update animal selection menu tags
+      const nameLabels = document.querySelectorAll('.animal-name-label');
+      nameLabels.forEach(label => {
+        const parentBtn = label.closest('.animal-btn');
+        const animalId = parentBtn.getAttribute('data-animal');
+        label.textContent = animals[animalId].name[currentLang];
+      });
+
+      // Update description cards
+      const animalData = animals[currentAnimalId];
+      infoAnimalIcon.textContent = animalData.icon;
+      infoAnimalName.textContent = animalData.name[currentLang];
+      infoDesc.textContent = animalData.description[currentLang];
+
+      // Update audio source and maintain play/pause state
+      const wasPlaying = !audioEl.paused;
+      audioEl.setAttribute('src', animalData.audio[currentLang]);
+      audioEl.load();
+
+      if (wasPlaying) {
+        audioEl.play()
+          .then(() => updateAudioButtonState(true))
+          .catch(err => {
+            console.error("Language audio autoplay failed:", err);
+            updateAudioButtonState(false);
+          });
+      } else {
+        updateAudioButtonState(false);
+      }
+    }
+
+    // 2. Handle Model Loading Events
+    viewer.addEventListener('load', () => {
+      loadingOverlay.style.opacity = 0;
+    });
+
+    viewer.addEventListener('progress', (e) => {
+      if (loadingOverlay.style.opacity !== '1') {
+        loadingOverlay.style.opacity = 1;
+      }
+    });
+
+    // 3. Custom Native AR Trigger Button Action
+    arTriggerBtn.addEventListener('click', () => {
+      viewer.activateAR();
+    });
+
+    // 4. Animal Selection Navigation Logic
+    animalButtons.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const animalId = btn.getAttribute('data-animal');
+        
+        // Skip if clicking the already active animal
+        if (animalId === currentAnimalId) return;
+
+        // Reset previous active buttons
+        animalButtons.forEach(b => {
+          b.classList.remove('active');
+          b.setAttribute('aria-pressed', 'false');
+        });
+
+        // Set current active button
+        btn.classList.add('active');
+        btn.setAttribute('aria-pressed', 'true');
+
+        // Stop current audio and reset it
+        resetAudio();
+
+        // Update current animal ID and load models
+        currentAnimalId = animalId;
+        const animalData = animals[animalId];
+
+        // Update model-viewer assets
+        viewer.setAttribute('src', animalData.glb);
+        viewer.setAttribute('ios-src', animalData.usdz);
+        viewer.setAttribute('alt', `A 3D model of a ${animalData.name[currentLang]} at true scale`);
+
+        // Update HTML5 audio source for matching language
+        audioEl.setAttribute('src', animalData.audio[currentLang]);
+        audioEl.load(); // Force browser to prepare new audio track
+
+        // Update UI Panel info
+        infoAnimalIcon.textContent = animalData.icon;
+        infoAnimalName.textContent = animalData.name[currentLang];
+        infoDesc.textContent = animalData.description[currentLang];
+      });
+    });
+
+    // 5. Custom Audio controls logic
+    audioBtn.addEventListener('click', () => {
+      if (audioEl.paused) {
+        audioEl.play()
+          .then(() => {
+            updateAudioButtonState(true);
+          })
+          .catch(err => {
+            console.error("Audio playback failed:", err);
+            alert("Audio file not found or browser blocked playback. Make sure your 'audio/' directory contains matching language tracks (e.g. macaw_en.mp3, macaw_si.mp3, macaw_ta.mp3).");
+          });
+      } else {
+        audioEl.pause();
+        updateAudioButtonState(false);
+      }
+    });
+
+    // Track audio track end event to automatically reset UI state
+    audioEl.addEventListener('ended', () => {
+      resetAudioStateOnly();
+    });
+
+    // Reset Audio completely (stops audio and sets back to beginning)
+    function resetAudio() {
+      audioEl.pause();
+      audioEl.currentTime = 0;
+      resetAudioStateOnly();
+    }
+
+    // Resets UI button text state to "Play" based on current language
+    function resetAudioStateOnly() {
+      audioBtn.classList.remove('playing');
+      audioBtnText.textContent = translations[currentLang].playAudio;
+    }
+
+    // Sets the UI state according to whether audio is playing or not
+    function updateAudioButtonState(isPlaying) {
+      if (isPlaying) {
+        audioBtn.classList.add('playing');
+        audioBtnText.textContent = translations[currentLang].pauseAudio;
+      } else {
+        audioBtn.classList.remove('playing');
+        audioBtnText.textContent = translations[currentLang].playAudio;
+      }
+    }
+  </script>
+</body>
+</html>
