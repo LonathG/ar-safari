@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AR Safari - Real-World Size Animals</title>
-  
+
   <!-- Premium Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,7 +23,8 @@
       --card-bg-active: rgba(255, 255, 255, 0.9);
       --border-color: rgba(0, 0, 0, 0.08);
       --border-glow: rgba(99, 102, 241, 0.2);
-      --accent-color: #4f46e5; /* Accessible indigo */
+      --accent-color: #4f46e5;
+      /* Accessible indigo */
       --accent-hover: #3730a3;
       --text-color: #0f172a;
       --text-muted: #475569;
@@ -185,7 +187,8 @@
       width: 100%;
       height: 100%;
       background-color: transparent;
-      --ar-button-display: none; /* Hide default AR button to use custom styling */
+      --ar-button-display: none;
+      /* Hide default AR button to use custom styling */
     }
 
     /* Bottom Overlay instructions */
@@ -273,7 +276,8 @@
     }
 
     .audio-btn.playing {
-      background: rgba(239, 68, 68, 0.9); /* Red state for pause */
+      background: rgba(239, 68, 68, 0.9);
+      /* Red state for pause */
       box-shadow: 0 8px 16px rgba(239, 68, 68, 0.2);
       border-color: rgba(255, 255, 255, 0.25);
       color: white;
@@ -312,7 +316,9 @@
     }
 
     @keyframes spin {
-      to { transform: rotate(360deg); }
+      to {
+        transform: rotate(360deg);
+      }
     }
 
     /* Info card layout */
@@ -345,17 +351,18 @@
     }
   </style>
 </head>
+
 <body>
 
   <div class="app-container">
-    
+
     <!-- Language Switcher -->
     <div class="lang-switcher">
       <button class="lang-btn active" data-lang="en" aria-label="Select English">EN</button>
       <button class="lang-btn" data-lang="si" aria-label="සිංහල තෝරන්න">සිංහල</button>
       <button class="lang-btn" data-lang="ta" aria-label="தமிழ் தேர்ந்தெடுக்கவும்">தமிழ்</button>
     </div>
-    
+
     <!-- Top Header -->
     <header>
       <h1 id="app-title">AR Safari Experience</h1>
@@ -392,7 +399,7 @@
 
     <!-- Large 3D View Window -->
     <main class="viewer-container">
-      
+
       <!-- Loading Indicator -->
       <div class="loading-overlay" id="loading-overlay">
         <div class="spinner"></div>
@@ -400,20 +407,9 @@
       </div>
 
       <!-- Google <model-viewer> component -->
-      <model-viewer
-        id="animal-viewer"
-        src="models/macaw.glb"
-        ios-src="models/macaw.usdz"
-        alt="A 3D model of a Macaw at true scale"
-        ar
-        ar-scale="fixed"
-        ar-modes="webxr scene-viewer quick-look"
-        camera-controls
-        touch-action="pan-y"
-        shadow-intensity="1"
-        shadow-softness="0.5"
-        exposure="1"
-        autoplay>
+      <model-viewer id="animal-viewer" src="models/macaw.glb" ios-src="models/macaw.usdz"
+        alt="A 3D model of a Macaw at true scale" ar ar-scale="fixed" ar-modes="webxr scene-viewer quick-look"
+        camera-controls touch-action="pan-y" shadow-intensity="1" shadow-softness="0.5" exposure="1" autoplay>
       </model-viewer>
 
       <!-- Floating Controls on Top of 3D Window -->
@@ -421,7 +417,8 @@
         <!-- Native AR Trigger (activates the <model-viewer> AR mode) -->
         <button class="action-btn" id="ar-trigger-btn">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"></path>
+            <path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2">
+            </path>
             <circle cx="12" cy="12" r="3"></circle>
           </svg>
           <span id="ar-btn-text">View in your space</span>
@@ -442,12 +439,13 @@
     <!-- Info/Details Panel -->
     <section class="info-panel" aria-labelledby="panel-title">
       <h2 id="panel-title">
-        <span id="info-animal-icon">🦜</span> 
-        <span id="info-animal-name">Macaw</span> - 
+        <span id="info-animal-icon">🦜</span>
+        <span id="info-animal-name">Macaw</span> -
         <span id="info-desc-heading">Description</span>
       </h2>
       <p id="info-animal-desc">
-        Macaws are long-tailed, often colorful New World parrots. Seeing a macaw at 1:1 scale in AR highlights their majestic wingspan and vibrant coloration.
+        Macaws are long-tailed, often colorful New World parrots. Seeing a macaw at 1:1 scale in AR highlights their
+        majestic wingspan and vibrant coloration.
       </p>
     </section>
 
@@ -627,7 +625,7 @@
     const audioBtn = document.getElementById('audio-control-btn');
     const audioEl = document.getElementById('audio-element');
     const animalButtons = document.querySelectorAll('.animal-btn');
-    
+
     // Translation Target DOM Elements
     const appTitle = document.getElementById('app-title');
     const appSubtitle = document.getElementById('app-subtitle');
@@ -659,12 +657,12 @@
 
     function updateLanguageUI() {
       const trans = translations[currentLang];
-      
+
       // Update global text blocks
       appTitle.textContent = trans.title;
       appSubtitle.textContent = trans.subtitle;
       arBtnText.textContent = trans.viewInSpace;
-      
+
       // Update instruction text
       overlayInstructions.innerHTML = trans.instructions;
       loadingText.textContent = trans.preparing;
@@ -721,7 +719,7 @@
     animalButtons.forEach(btn => {
       btn.addEventListener('click', (e) => {
         const animalId = btn.getAttribute('data-animal');
-        
+
         // Skip if clicking the already active animal
         if (animalId === currentAnimalId) return;
 
@@ -805,4 +803,5 @@
     }
   </script>
 </body>
+
 </html>
