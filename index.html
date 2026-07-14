@@ -1358,8 +1358,8 @@
       loadingOverlay.style.opacity = '1';
 
       // Load Assets dynamically
-      animalViewer.src = animal.glb;
-      animalViewer.setAttribute('ios-src', animal.usdz);
+      animalViewer.src = encodeURI(animal.glb);
+      animalViewer.setAttribute('ios-src', encodeURI(animal.usdz));
       animalViewer.setAttribute('alt', `3D model of ${animal.name[currentLang]}`);
 
       // Set the specific animation name for idle animation
