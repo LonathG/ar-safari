@@ -330,7 +330,7 @@
       box-shadow: 0 10px 24px rgba(186, 219, 95, 0.35);
     }
 
-    .animal-card > * {
+    .animal-card>* {
       pointer-events: none;
     }
 
@@ -1362,7 +1362,7 @@
       animalViewer.setAttribute('ios-src', encodeURI(animal.usdz));
       animalViewer.setAttribute('alt', `3D model of ${animal.name[currentLang]}`);
 
-      // Set the specific animation name for idle animation
+      // Set the specific name for idle animation
       if (animal.animationName) {
         animalViewer.setAttribute('animation-name', animal.animationName);
       } else {
