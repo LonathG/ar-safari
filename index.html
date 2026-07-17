@@ -1213,6 +1213,20 @@
     const animalViewer = document.getElementById('animal-viewer');
     const loadingOverlay = document.getElementById('loading-overlay');
 
+    // Helper to update URL query parameter search parameters
+    function updateUrl(animalId) {
+      const url = new URL(window.location.href);
+      const currentParam = url.searchParams.get('animal');
+      if (currentParam === animalId) return;
+
+      if (animalId) {
+        url.searchParams.set('animal', animalId);
+      } else {
+        url.searchParams.delete('animal');
+      }
+      window.history.pushState({ animalId }, '', url);
+    }
+
     // Populate Selection Grid on start
     function renderGrid() {
       gridContainer.innerHTML = '';
@@ -1236,6 +1250,9 @@
           // Toggle active classes in grid view
           document.querySelectorAll('.animal-card').forEach(c => c.classList.remove('active'));
           card.classList.add('active');
+
+          // Update URL query parameter
+          updateUrl(key);
 
           // Navigate and open Detail Screen
           setTimeout(() => openDetailPage(key), 180);
@@ -1283,6 +1300,7 @@
     document.getElementById('detail-back-btn').addEventListener('click', () => {
       resetAudioNarration();
       phoneContainer.classList.remove('show-detail');
+      updateUrl(null);
     });
 
     // Language Selector Overlay triggers
@@ -1538,10 +1556,39 @@
     }
 
 
+    // Handle browser back/forward buttons
+    window.addEventListener('popstate', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const animal = urlParams.get('animal');
+      if (animal && animals[animal]) {
+        currentAnimalId = animal;
+
+        // Toggle active classes in grid view
+        document.querySelectorAll('.animal-card').forEach(c => {
+          c.classList.toggle('active', c.getAttribute('data-animal-id') === animal);
+        });
+
+        // Open detail screen
+        openDetailPage(animal);
+      } else {
+        // Return to grid screen
+        resetAudioNarration();
+        phoneContainer.classList.remove('show-detail');
+      }
+    });
+
     // INIT APPLICATION
     window.addEventListener('load', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const animal = urlParams.get('animal');
+      if (animal && animals[animal]) {
+        currentAnimalId = animal;
+      }
       renderGrid();
       updateTranslations();
+      if (animal && animals[animal]) {
+        openDetailPage(animal);
+      }
     });
   </script>
 </body>
